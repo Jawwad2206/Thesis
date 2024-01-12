@@ -7,7 +7,9 @@ Created on Thu Decemeber 14 17:31:18 2023
 
 import pandas as pd
 import numpy as np
-import datahandler
+import datapreprocessing.pre_processing_db as dh_ad
+import datapreprocessing.normalizetime as normt
+
 
 def show_welcome():
     print("*************************************")
@@ -29,11 +31,14 @@ def option1():
 
 def option2():
     print("You selected Option 2")
+    normt.normalize_time()
 
 def option3():
     print("You selected Option 3")
-    ml_dt = datahandler.load_training()
-    print(len(ml_dt))
+    ml_db = dh_ad.load_training_ml()
+    list_ml_movies = dh_ad.adjust_timestemps(ml_db)
+    ml_movies, nf_movies = dh_ad.remove_not_matching(list_ml_movies)
+    dh_ad.intersection_movies(ml_db, ml_movies, nf_movies)
 
 show_welcome()
 while True:
