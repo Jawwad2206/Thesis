@@ -14,15 +14,16 @@ def normalize_time():
     db.head()
     df = pd.read_csv("DF.csv", encoding="UTF-8", sep=";")
     df.head()
+    df = df.dropna()
     # Create new reference time
     ref = datetime.datetime.strptime('19981001', '%Y%m%d')
 
-    temp_db = np.where(db["timestamp"].notna(), np.floor((db["timestamp"].apply(datetime.datetime.fromtimestamp) - ref) / datetime.timedelta(days=1)), np.nan)
+    temp_db = np.floor((db["timestamp"].apply(datetime.datetime.fromtimestamp) - ref) / datetime.timedelta(days=1))
     # db.head()
     # df.head()
-
-    temp_df = np.where(df["timestamp"].notna(), np.floor((df["timestamp"].astype(str).apply(datetime.datetime.strptime, args=('%Y%m%d',)) - ref) / datetime.timedelta(days=1)), np.nan)
-
+    temp_df = np.floor(
+        (df["timestamp"].astype(str).apply(datetime.datetime.strptime, args=('%Y%m%d',)) - ref) / datetime.timedelta(
+            days=1))
     db["timestamp"] = temp_db
     df["timestamp"] = temp_df
     db.to_csv("time_fixed_DB.csv", ";", index=False)
