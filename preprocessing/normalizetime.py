@@ -4,27 +4,52 @@ Created on Thu Decemeber 14 17:31:18 2023
 
 @author: Jawwad Khan, 7417247, Thesis Cybersecurity, Title: The Role of the Adversary's Success Rate Metric in Cybersecurity
 """
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 import datetime
+import preprocessing.datasets as ld
+
 
 def normalize_time():
-    db = pd.read_csv("DB.csv", encoding="UTF-8", sep=";")
+    db = ld.load_DB_csv()
     db["rating"] = np.ceil(db["rating"])
-    db.head()
-    df = pd.read_csv("DF.csv", encoding="UTF-8", sep=";")
-    df.head()
-    df = df.dropna()
+
+    df = ld.load_DF_csv()
+
     # Create new reference time
     ref = datetime.datetime.strptime('19981001', '%Y%m%d')
 
-    temp_db = np.floor((db["timestamp"].apply(datetime.datetime.fromtimestamp) - ref) / datetime.timedelta(days=1))
-    # db.head()
-    # df.head()
-    temp_df = np.floor(
-        (df["timestamp"].astype(str).apply(datetime.datetime.strptime, args=('%Y%m%d',)) - ref) / datetime.timedelta(
-            days=1))
+    # Convert timestamp in DB
+    temp_db = np.floor((pd.to_datetime(db["timestamp"], unit='s', origin='unix') - ref) / np.timedelta64(1, 'D'))
     db["timestamp"] = temp_db
+
+    # Convert timestamp in DF
+    temp_df = np.floor((pd.to_datetime(df["timestamp"], format='%Y-%m-%d') - ref) / np.timedelta64(1, 'D'))
     df["timestamp"] = temp_df
-    db.to_csv("time_fixed_DB.csv", ";", index=False)
-    df.to_csv("time_fixed_DF.csv", ";", index=False)
+
+    db.to_csv("datasets\\MovieLens.csv", ";", index=False)
+    df.to_csv("datasets\\Netflix.csv", ";", index=False)
+
+def days_between_dates(date_str1, date_str2):
+    date_format = "%Y-%m-%d"
+
+    # Convert date strings to datetime objects
+    date1 = datetime.datetime.strptime(date_str1, date_format)
+    date2 = datetime.datetime.strptime(date_str2, date_format)
+
+    # Calculate the difference between the two dates
+    delta = date2 - date1
+
+    # Extract the number of days from the timedelta object
+    days_passed = delta.days
+
+    return days_passed
+
+# Example usage
+date_str1 = "1998-10-01"
+date_str2 = "2001-12-31"
+
+result = days_between_dates(date_str1, date_str2)
+print(f"Days passed between {date_str1} and {date_str2}: {result} days")
+

@@ -9,6 +9,20 @@ import pandas as pd
 
 
 def load_training_ml():
-    # Load the original dataset
-    df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA\\ml-20m\\ml-20m\\ratings.csv", header=None, encoding="UTF-8", names=["userId","movieId","rating","timestamp"])
+    # Load the MovieLens dataset
+    df = pd.read_csv(
+        "datasets\\ml-20m\\ratings.csv",
+        header=0, encoding="UTF-8", dtype={0: int, 1: int, 2: float, 3: float},
+        names=["userId", "movieId", "rating", "timestamp"])
     return df
+
+def load_DB_csv():
+    db = pd.read_csv("datasets\\ml.csv", encoding="UTF-8", sep=";")
+    return db
+
+def load_DF_csv():
+    db = pd.read_csv("datasets\\nf.csv", encoding="UTF-8", sep=";")
+    db = db.dropna()
+    return db
+
+
