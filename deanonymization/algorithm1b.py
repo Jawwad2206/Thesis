@@ -22,13 +22,17 @@ def score_function(auxiliary_information, records):
 
     score = 0
     # Specify the value you want to count
-    value_to_count = '5167'
-
-    # Count occurrences of the specified value in the dictionaries
-    supp = sum(value_to_count in d.values() for d in my_list_of_dicts)
+    key_to_count = 1
     for r in records:
+        movieID = r.get(3)
         for aux in auxiliary_information:
-            r+aux
+            #Count occurrences of the movies in the dictionaries
+            supp = sum(d.get(key_to_count) == movieID for d in auxiliary_information)
+            #wt = (1/np.log(supp))
+        #print(wt)
+        #print(f"The value '{movieID}' occurs {supp} times for key {key_to_count}.")
+
+
 
     return score
 
@@ -90,40 +94,54 @@ def algorithm_1b(aux, dataset):
 
 
 # Load nf.csv and ml.csv datasets
+#C:\Users\jawwa\OneDrive\Studium\Goethe Universität - BA\7.Semester\BA\BA-Implementierung\datasets\Netflix.csv - Laptop
+#C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA\\BA-Implementierung\\datasets\\Netflix.csv
 nf_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA"
-                        "\\BA-Implementierung\\datasets\\Netflix.csv",
+                    "\\BA-Implementierung\\datasets\\Netflix.csv",
                      header=None, encoding="UTF-8", sep = ";", nrows=10)
 
-ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA"
-                        "\\BA-Implementierung\\datasets\\MovieLens.csv",
+#C:\Users\jawwa\OneDrive\Studium\Goethe Universität - BA\7.Semester\BA\BA-Implementierung\datasets\MovieLens.csv - Laptop
+#C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv"
+ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv",
                      header=None, encoding="UTF-8", sep = ";", nrows=10)
 
 auxiliary_information = ml_df.to_dict("records")
 auxiliary_information.pop(0)
 
+print(auxiliary_information)
 records = nf_df.to_dict("records")
 records.pop(0)
-
-#{0: 'userId', 1: 'movieId', 2: 'rating', 3: 'timestamp'}
-print(auxiliary_information)
-#{0: 'userId', 1: 'rating', 2: 'timestamp', 3: 'movieId'}
 print(records)
 
-my_list_of_dicts = [
-    {0: 'userId', 1: 'rating', 2: 'timestamp', 3: 'movieId'},
-    {0: '1109700', 1: '4.0', 2: '1015.0', 3: '5167'},
-    {0: '1056998', 1: '5.0', 2: '2283.0', 3: '5167'},
-    {0: '903692', 1: '3.0', 2: '2295.0', 3: '5167'},
-    # ... other dictionaries
-]
+score_function(auxiliary_information, records)
 
-# Specify the value you want to count
-value_to_count = '5167'
+auxi  = [
+{0: 'userId', 1: 'movieId', 2: 'rating', 3: 'timestamp'},
+ {0: '1', 1: '2', 2: '4.0', 3: '2375.0'},
+ {0: '1', 1: '50', 2: '4.0', 3: '2375.0'},
+ {0: '1', 1: '151', 2: '4.0', 3: '2171.0'},
+ {0: '1', 1: '223', 2: '4.0', 3: '2375.0'},
+ {0: '1', 1: '296', 2: '4.0', 3: '2375.0'},
+ {0: '1', 1: '337', 2: '4.0', 3: '2171.0'},
+ {0: '1', 1: '541', 2: '4.0', 3: '2375.0'},
+ {0: '1', 1: '593', 2: '4.0', 3: '2375.0'},
+ {0: '1', 1: '653', 2: '3.0', 3: '2171.0'}
+         ]
 
-# Count occurrences of the specified value in the dictionaries
-count_occurrences = sum(value_to_count in d.values() for d in my_list_of_dicts)
+rrecords = [
+{0: 'userId', 1: 'rating', 2: 'timestamp', 3: 'movieId'},
+        {0: '1109700', 1: '4.0', 2: '2375.0', 3: '541'},
+        {0: '1056998', 1: '5.0', 2: '2283.0', 3: '5167'},
+        {0: '903692', 1: '3.0', 2: '2295.0', 3: '5167'},
+        {0: '2380973', 1: '4.0', 2: '2603.0', 3: '5167'},
+        {0: '497196', 1: '3.0', 2: '1975.0', 3: '5167'},
+        {0: '74144', 1: '3.0', 2: '2312.0', 3: '5167'},
+        {0: '2075969', 1: '5.0', 2: '2443.0', 3: '5167'},
+        {0: '2535052', 1: '3.0', 2: '1400.0', 3: '5167'},
+        {0: '76196', 1: '1.0', 2: '1175.0', 3: '5167'}
+            ]
 
-print(f"The value '{value_to_count}' occurs {count_occurrences} times.")
+
 
 
 
