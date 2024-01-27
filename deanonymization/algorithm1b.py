@@ -8,7 +8,7 @@ Created on Thu January 14 17:31:18 2023
 import pandas as pd
 import numpy as np
 
-def score_function(auxiliary_information, records):
+def score_function(aux, record, supp):
     """
     This function calculates the score for a record r based on its similarity to the auxiliary information aux.
 
@@ -19,20 +19,25 @@ def score_function(auxiliary_information, records):
     Returns:
     float: The score for the record.
     """
-
     score = 0
-    # Specify the value you want to count
-    key_to_count = 1
-    for r in records:
-        movieID = r.get(3)
-        for aux in auxiliary_information:
-            #Count occurrences of the movies in the dictionaries
-            supp = sum(d.get(key_to_count) == movieID for d in auxiliary_information)
-            #wt = (1/np.log(supp))
-        #print(wt)
-        #print(f"The value '{movieID}' occurs {supp} times for key {key_to_count}.")
+    rho0 = 1.5
+    d0 = 30
+    #user_id = record.get(0)
+    rating = float(record.get(1))
+    timestamp = float(record.get(2))
+    #aux_user_id = aux.get(0)
+    #aux_movie_id = aux.get(1)
+    aux_rating = float(aux.get(2))
+    aux_timestamp = float(aux.get(3))
 
 
+    if supp == 0 or supp == 1:
+        print("schade")
+    else:
+        wt = (1/(np.log(supp)))
+        e1 = -((abs(aux_rating - rating)) / rho0)
+        e2 = -((abs(aux_timestamp - timestamp)) / d0)
+        score = wt * (np.exp(e1) + np.exp(e2))
 
     return score
 
@@ -46,16 +51,22 @@ def matching_criterion(scores, eccentricity):
     Returns:
     bool: True if there is a match, False otherwise.
     """
-    sorted_scores = sorted(scores)
-    max_score = sorted_scores[0]
-    max2_score = sorted_scores[1]
+    sorted_scores = sorted(scores, reverse=True)
+    #print(sorted_scores, "sorted scores")
+    unique_list = list(set(sorted_scores))
+    max_score = unique_list[0]
+    #print(max_score, "S1")
+    max2_score = unique_list[1]
+    #print(max2_score, "S2")
     sigma = np.std(scores)
+    #print(sigma, "sigma")
+    #print((max_score - max2_score) / sigma)
     if (max_score - max2_score) / sigma < eccentricity:
         return False
     else:
-        return True
+        return True, max_score
 
-def record_selection(scores, sigma):
+def record_selection(scores):
     """
     This function selects the "best-guess" record or a probability distribution based on the scores.
 
@@ -69,11 +80,13 @@ def record_selection(scores, sigma):
         return scores[0]
     else:
         probability_distribution = {}
+        std_dev = np.std(scores)
+        c = 1 / np.sum(np.exp(scores / std_dev))
         for i, score in enumerate(scores):
-            probability_distribution[i] = np.exp(score / sigma)
+            probability_distribution[i] = c * (np.exp(score / std_dev))
         return probability_distribution
 
-def algorithm_1b(aux, dataset):
+def algorithm_1b(auxiliary_information, records):
     """
     This function de-anonymizes a target using auxiliary information.
 
@@ -84,64 +97,71 @@ def algorithm_1b(aux, dataset):
     Returns:
     dict or list: The "best-guess" record or a probability distribution.
     """
-    scores = []
-    for record in dataset.to_dict('records'):
-        score = score_function(aux, record)
-        scores.append(score)
+    count = 0
+    eccentricity = 0.7
+    for record in records:
+        count += 1
+        scores = []
+        movie_id = record.get(3)
+        print("Record",count, record)
+        print("|-----------------------------|")
+        for aux in auxiliary_information:
+            supp = sum(d.get(1) == movie_id for d in auxiliary_information)
+            score = score_function(aux, record, supp)
+            scores.append(score)
+        match, max_score = matching_criterion(scores, eccentricity)
+        if match == True:
+            pd = record_selection(scores)
+            for i in range(len(scores)):
+                print("->Aux:", i, "Score:", round(scores[i],2),"Max Score:", round(max_score, 2), "Eccentricity:", eccentricity, "Probability:", round(pd.get(i), 2))
+        else:
+            print("no match found!")
 
-    record = record_selection(scores, 0.3)
-    return record
+
 
 
 # Load nf.csv and ml.csv datasets
-#C:\Users\jawwa\OneDrive\Studium\Goethe Universität - BA\7.Semester\BA\BA-Implementierung\datasets\Netflix.csv - Laptop
-#C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA\\BA-Implementierung\\datasets\\Netflix.csv
+
 nf_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA"
                     "\\BA-Implementierung\\datasets\\Netflix.csv",
                      header=None, encoding="UTF-8", sep = ";", nrows=10)
 
-#C:\Users\jawwa\OneDrive\Studium\Goethe Universität - BA\7.Semester\BA\BA-Implementierung\datasets\MovieLens.csv - Laptop
-#C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv"
-ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv",
+
+ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\"
+                    "7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv",
                      header=None, encoding="UTF-8", sep = ";", nrows=10)
 
 auxiliary_information = ml_df.to_dict("records")
 auxiliary_information.pop(0)
 
-print(auxiliary_information)
+
 records = nf_df.to_dict("records")
 records.pop(0)
-print(records)
 
-score_function(auxiliary_information, records)
 
-auxi  = [
-{0: 'userId', 1: 'movieId', 2: 'rating', 3: 'timestamp'},
- {0: '1', 1: '2', 2: '4.0', 3: '2375.0'},
- {0: '1', 1: '50', 2: '4.0', 3: '2375.0'},
- {0: '1', 1: '151', 2: '4.0', 3: '2171.0'},
- {0: '1', 1: '223', 2: '4.0', 3: '2375.0'},
- {0: '1', 1: '296', 2: '4.0', 3: '2375.0'},
- {0: '1', 1: '337', 2: '4.0', 3: '2171.0'},
- {0: '1', 1: '541', 2: '4.0', 3: '2375.0'},
- {0: '1', 1: '593', 2: '4.0', 3: '2375.0'},
- {0: '1', 1: '653', 2: '3.0', 3: '2171.0'}
+
+#{0: 'userId', 1: 'movieId', 2: 'rating', 3: 'timestamp'},
+auxi_test  = [
+ {0: '1', 1: '5167', 2: '2.0', 3: '2305.0'},
+ {0: '1', 1: '5167', 2: '4.0', 3: '2395.0'},
+ {0: '1', 1: '5167', 2: '4.0', 3: '2171.0'},
+ {0: '1', 1: '5167', 2: '1.0', 3: '2560.0'},
+ {0: '1', 1: '5167', 2: '4.0', 3: '2375.0'},
+ {0: '1', 1: '5167', 2: '4.0', 3: '2171.0'},
+ {0: '1', 1: '5167', 2: '5.0', 3: '2443.0'},
+ {0: '1', 1: '5167', 2: '2.0', 3: '2843.0'},
+ {0: '1', 1: '5167', 2: '3.0', 3: '2171.0'}
          ]
 
-rrecords = [
-{0: 'userId', 1: 'rating', 2: 'timestamp', 3: 'movieId'},
-        {0: '1109700', 1: '4.0', 2: '2375.0', 3: '541'},
-        {0: '1056998', 1: '5.0', 2: '2283.0', 3: '5167'},
-        {0: '903692', 1: '3.0', 2: '2295.0', 3: '5167'},
-        {0: '2380973', 1: '4.0', 2: '2603.0', 3: '5167'},
-        {0: '497196', 1: '3.0', 2: '1975.0', 3: '5167'},
-        {0: '74144', 1: '3.0', 2: '2312.0', 3: '5167'},
-        {0: '2075969', 1: '5.0', 2: '2443.0', 3: '5167'},
-        {0: '2535052', 1: '3.0', 2: '1400.0', 3: '5167'},
-        {0: '76196', 1: '1.0', 2: '1175.0', 3: '5167'}
+#{0: 'userId', 1: 'rating', 2: 'timestamp', 3: 'movieId'},
+records_test = [
+        {0: '1109700', 1: '4.0', 2: '2375.0', 3: '5167'}
             ]
 
 
+
+
+algorithm_1b(auxiliary_information, records)
 
 
 
