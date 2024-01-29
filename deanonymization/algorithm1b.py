@@ -59,10 +59,11 @@ def matching_criterion(scores, eccentricity):
         sigma = np.std(scores)
         #print(sigma, "sigma")
         #print((max_score - max2_score) / sigma, "eccentricity")
-        if (max_score - max2_score) / sigma < eccentricity:
-            return False, max_score, ((max_score - max2_score) / sigma)
+        ecc_calc = ((max_score - max2_score) / sigma)
+        if ecc_calc < eccentricity:
+            return False, max_score, ecc_calc
         else:
-            return True, max_score, ((max_score - max2_score) / sigma)
+            return True, max_score, ecc_calc
 
 def record_selection(scores):
     """
@@ -96,7 +97,10 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
     dict or list: The "best-guess" record or a probability distribution.
     """
 
-    eccentricity = 0.5
+    eccentricity = 0.7
+    list_ecc = []
+    match_true = 0
+    match_false = 0
     for id in com_movie:
         auxalso = []
         records_i = nf_df.loc[id,:]
@@ -108,36 +112,45 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
             auxiliary_information = auxalso
         else:
             auxiliary_information = auxiliary_information_i.to_dict("records")
+
         for aux in auxiliary_information:
             scores = []
             #print(aux, "aux")
-            print("Auxiliary Information ->", aux)
+            print("MovieID:", id, "Auxiliary Information ->", aux)
             for record in records:
                 #print(record, "record")
                 #print(counts_movie.get(id), "counts_movie.get(id)")
                 score = score_function(aux, record, counts_movie.get(id))
                 scores.append(score)
             match, max_score, ecc = matching_criterion(scores, eccentricity)
+            list_ecc.append(ecc)
             print("------------------------------------------")
             if match == True:
+                match_true +=1
                 pd = record_selection(scores)
                 for i in range(len(scores)):
                     if scores[i] == max_score:
                         print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
                               "Set Eccentricity:", eccentricity, "Calculated Eccentricity", round(ecc,2),
-                              "Probability:", round(pd.get(i), 2), "Candidate Record-->:", records[i])
+                              "Probability:", pd.get(i), "Candidate Record-->:", records[i])
                     else:
-                        print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
-                              "Set Eccentricity:", eccentricity,"Calculated Eccentricity", round(ecc,2), "Probability:",
-                              round(pd.get(i), 2))
+                        continue
+                        #print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
+                              #"Set Eccentricity:", eccentricity,"Calculated Eccentricity", round(ecc,2), "Probability:",
+                              #round(pd.get(i), 2))
                 print("\n")
             elif max_score == 0 and ecc == 0:
+                match_false += 1
                 print("no match error in row!")
                 print("\n")
             else:
+                match_false += 1
                 print("no match Eccentricity:", round(ecc, 2), "<", eccentricity)
                 print("\n")
 
+    print(sorted(list_ecc), "list")
+    print(match_true, "match True")
+    print(match_false, "match False")
 
 
 
@@ -147,14 +160,14 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
 
 nf_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA"
                     "\\BA-Implementierung\\datasets\\Netflix.csv",
-                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=3600)
+                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=4600)
 
 nf_df_dict = nf_df.to_dict("records")
 
 
 ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\"
                     "7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv",
-                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=3000)
+                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=4000)
 
 
 
@@ -182,17 +195,15 @@ records_test = [
     {0: '76196', 1: '1.0', 2: '1175.0', 3: '5168'}
 ]
 
-#count_movie = ct(entry[3] for entry in records_test)
-count_movie = ct(entry[3] for entry in nf_df_dict)
-#deafen = pd.DataFrame(records_test)
-#dafen = pd.DataFrame(auxi_test)
-deafen = nf_df
-dafen = ml_df
+count_movie = ct(entry[3] for entry in records_test)
+#count_movie = ct(entry[3] for entry in nf_df_dict)
+deafen = pd.DataFrame(records_test)
+dafen = pd.DataFrame(auxi_test)
+#deafen = nf_df
+#dafen = ml_df
 deafen.set_index([3],inplace=True) # setze movieID als index also haupterkennung
 dafen.set_index([1],inplace=True) # setze movieID als index also haupterkennung
 com_movies = deafen.index.unique().intersection(dafen.index.unique()) # gib nur die MovieIDs die beide haben
-
-
 
 algorithm_1b(com_movies, count_movie, dafen, deafen)
 

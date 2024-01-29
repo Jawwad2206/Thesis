@@ -129,14 +129,14 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
 
 nf_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA"
                     "\\BA-Implementierung\\datasets\\Netflix.csv",
-                     header=None, encoding="UTF-8", sep = ";", nrows=100000, skiprows=1)
+                     header=None, encoding="UTF-8", sep = ";", nrows=10000, skiprows=1)
 
 
 
 
 ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\"
                     "7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv",
-                     header=None, encoding="UTF-8", sep = ";", nrows=100000, skiprows=1)
+                     header=None, encoding="UTF-8", sep = ";", nrows=10000, skiprows=1)
 
 
 
