@@ -4,10 +4,33 @@ Created on Thu January 14 17:31:18 2023
 
 @author:Jawwad Khan,7417247,Thesis Cybersecurity,Title: The Role of the Adversary's Success Rate Metric in Cybersecurity
 """
+
+
 import pandas
 import pandas as pd
 import numpy as np
 from collections import Counter as ct
+import matplotlib.pyplot as plt
+
+
+def sim(rating, timestamp, aux_rating, aux_timestamp):
+    sim_score = 0
+
+    if abs(aux_timestamp - timestamp) <= 14:
+        if abs(aux_timestamp - timestamp) <= 3:
+            sim_score += 1
+        else:
+            sim_score += 0
+    else:
+        sim_score += 0
+
+    if abs(rating - aux_rating) == 0:
+        sim_score += 1
+    else:
+        sim_score += 0
+
+    return sim_score
+
 def score_function(aux, record, counts):
     """
     This function calculates the score for a record r based on its similarity to the auxiliary information aux.
@@ -19,7 +42,7 @@ def score_function(aux, record, counts):
     Returns:
     float: The score for the record.
     """
-
+    sim_score = 0
     score = 0
     rho0 = 1.5
     d0 = 30
@@ -31,10 +54,11 @@ def score_function(aux, record, counts):
     if aux_timestamp < 0:
         score = 0
     else:
+        sim_score = sim(rating, timestamp, aux_rating, aux_timestamp)
         wt = (1/(np.log10(counts)))
-        score = wt * (np.exp(-((aux_rating - rating) / rho0)) + np.exp(-((aux_timestamp - timestamp) / d0)))
+        score = wt * (np.exp(-((aux_rating - rating)) / rho0) + np.exp((-aux_timestamp - timestamp) / d0))
 
-    return score
+    return score + sim_score
 
 def matching_criterion(scores, eccentricity):
     """
@@ -47,26 +71,29 @@ def matching_criterion(scores, eccentricity):
     bool: True if there is a match, False otherwise.
     """
     if (sum(scores) == 0):
+        print("case 1")
         return False, 0, 0
     elif len(scores) == 1:
+        print("case 2")
         max_score = scores[0]
         if max_score < 2:
             return False, max_score, max_score
         else:
-            return True, max_score, max_score
+            return False, max_score, max_score
     else:
+        print("case 3")
         sorted_scores = sorted(scores, reverse=True)
         #print(sorted_scores)
         #print(sorted_scores, "sorted scores")
         unique_list = list(sorted(set(sorted_scores), reverse=True))
         #print(unique_list, "unique List")
-        max_score = sorted_scores[0]
+        max_score = unique_list[0]
         #print(max_score, "S1")
-        max2_score = sorted_scores[1]
+        max2_score = unique_list[1]
         #print(max2_score, "S2")
         sigma = np.std(scores)
         #print(sigma, "sigma")
-        #print((max_score - max2_score) / sigma, "eccentricity")
+        #print(((max_score - max2_score) / sigma), "eccentricity")
         ecc_calc = ((max_score - max2_score) / sigma)
         if ecc_calc < eccentricity:
             return False, max_score, ecc_calc
@@ -105,7 +132,7 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
     dict or list: The "best-guess" record or a probability distribution.
     """
 
-    eccentricity = 1.5
+    eccentricity = 2
     list_ecc = []
     match_true = 0
     match_false = 0
@@ -122,7 +149,6 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
             auxiliary_information = auxiliary_information_i.to_dict("records")
         for record in records:
             scores = []
-            #print(aux, "aux")
             print("MovieID:", id, "Record ->", record)
             for aux in auxiliary_information:
                 #print(record, "record")
@@ -130,28 +156,27 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
                 score = score_function(aux, record, counts_movie.get(id))
                 scores.append(score)
             match, max_score, ecc = matching_criterion(scores, eccentricity)
-            if max_score == ecc:
-                continue
-            else:
-                list_ecc.append(ecc)
             print("------------------------------------------")
             if match == True:
                 match_true +=1
-                #pd = record_selection(scores)
+                if max_score == ecc:
+                    continue
+                else:
+                    list_ecc.append(ecc)
+                pd = record_selection(scores)
                 for i in range(len(scores)):
                     if scores[i] == max_score:
                         print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
                               "Set Eccentricity:", eccentricity, "Calculated Eccentricity", round(ecc,2),
-                              "Probability:", 1, "Candidate Record-->:", auxiliary_information[i])
+                              "Probability:", pd.get(i), "Candidate Record-->:", auxiliary_information[i])
                     else:
-                        continue
-                        #print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
-                              #"Set Eccentricity:", eccentricity,"Calculated Eccentricity", round(ecc,2), "Probability:",
-                              #1)
+                        print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
+                              "Set Eccentricity:", eccentricity,"Calculated Eccentricity", round(ecc,2), "Probability:",
+                              pd.get(i), "Candidate Record-->:", auxiliary_information[i])
                 print("\n")
-            elif max_score == 0 and ecc == 0:
+            elif max_score == 0 and ecc == 0 or max_score == ecc:
                 match_false += 1
-                print("no match error in row!")
+                print("no match")
                 print("\n")
             else:
                 match_false += 1
@@ -164,29 +189,27 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
 
 
 
-
-
 # Load nf.csv and ml.csv datasets
 
 nf_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA"
                     "\\BA-Implementierung\\datasets\\Netflix.csv",
-                     header=None, encoding="UTF-8", sep = ";", skiprows=1)
+                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=100000)
 
 nf_df_dict = nf_df.to_dict("records")
 
 
 ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\"
                     "7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv",
-                     header=None, encoding="UTF-8", sep = ";", skiprows=1)
+                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=100000)
 
-
+ml_df_dict = ml_df.to_dict("records")
 
 
 #{0: 'userId', 1: 'movieId', 2: 'rating', 3: 'timestamp'},
 auxi_test  = [
     {0: '1', 1: '50', 2: '4.0', 3: '2375.0'},
     {0: '1', 1: '151', 2: '4.0', 3: '2171.0'},
-    {0: '1', 1: '5167', 2: '5.0', 3: '2171.0'},
+    {0: '1', 1: '5167', 2: '5.0', 3: '2283.0'},
     {0: '1', 1: '5167', 2: '3.0', 3: '2812.0'},
     {0: '1', 1: '5168', 2: '5.0', 3: '2575.0'}
 ]
@@ -215,12 +238,25 @@ deafen.set_index([3],inplace=True) # setze movieID als index also haupterkennung
 dafen.set_index([1],inplace=True) # setze movieID als index also haupterkennung
 com_movies = deafen.index.unique().intersection(dafen.index.unique()) # gib nur die MovieIDs die beide haben
 
+
 list_ecc, match_true, match_false = algorithm_1b(com_movies, count_movie, dafen, deafen)
+count_ecc = ct(list_ecc)
+print(count_ecc)
+def create_charts(list_ecc):
+    # Generate some random data
+    data = list_ecc  # You can replace this with your own dataset
+    # Create a histogram
+    plt.hist(data, bins=30, edgecolor='black')
 
-print(len(sorted(list_ecc)), "list")
-print(match_true, "match True")
-print(match_false, "match False")
+    # Adding labels and title
+    plt.xlabel('Values')
+    plt.ylabel('Frequency')
+    plt.title('Histogram Example')
 
+    # Display the histogram
+    plt.show()
+
+create_charts(list_ecc)
 
 
 
