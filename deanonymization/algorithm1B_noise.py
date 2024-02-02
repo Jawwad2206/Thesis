@@ -4,7 +4,7 @@ Created on Thu January 14 17:31:18 2023
 
 @author:Jawwad Khan,7417247,Thesis Cybersecurity,Title: The Role of the Adversary's Success Rate Metric in Cybersecurity
 """
-import pandas
+
 import pandas as pd
 import numpy as np
 from collections import Counter as ct
@@ -26,9 +26,6 @@ def sim(rating, timestamp, aux_rating, aux_timestamp):
         sim_score += 1
     else:
         sim_score += 0
-
-    if (aux_timestamp - timestamp) == 0 and (aux_rating - rating) == 0:
-        sim_score += 10
 
     return sim_score
 
@@ -57,7 +54,7 @@ def score_function(aux, record, counts):
     else:
         sim_score = sim(rating, timestamp, aux_rating, aux_timestamp)
         wt = (1/(np.log10(counts)))
-        score = wt * (np.exp(-((aux_rating - rating)) / rho0) + np.exp((-aux_timestamp - timestamp) / d0))
+        score = wt * (np.exp(-((rating - rating)) / rho0) + np.exp((-aux_timestamp - timestamp) / d0))
 
     return score + sim_score
 
@@ -72,29 +69,29 @@ def matching_criterion(scores, eccentricity):
     bool: True if there is a match, False otherwise.
     """
     if (sum(scores) == 0):
-        print("case 1")
+        #print("case 1")
         return False, 0, 0
     elif len(scores) == 1:
-        print("case 2")
+        #print("case 2")
         max_score = scores[0]
         if max_score < 2:
             return False, max_score, max_score
         else:
             return False, max_score, max_score
     else:
-        print("case 3")
+        #print("case 3")
         sorted_scores = sorted(scores, reverse=True)
-        print(sorted_scores)
+        #print(sorted_scores)
         #print(sorted_scores, "sorted scores")
         unique_list = list(sorted(set(sorted_scores), reverse=True))
-        print(unique_list, "unique List")
+        #print(unique_list, "unique List")
         max_score = unique_list[0]
-        print(max_score, "S1")
+        #print(max_score, "S1")
         max2_score = unique_list[1]
-        print(max2_score, "S2")
+        #print(max2_score, "S2")
         sigma = np.std(scores)
-        print(sigma, "sigma")
-        print(((max_score - max2_score) / sigma), "eccentricity")
+        #print(sigma, "sigma")
+        #print(((max_score - max2_score) / sigma), "eccentricity")
         ecc_calc = ((max_score - max2_score) / sigma)
         if ecc_calc < eccentricity:
             return False, max_score, ecc_calc
@@ -194,14 +191,14 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
 
 nf_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA"
                     "\\BA-Implementierung\\datasets\\Netflix.csv",
-                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=300000)
+                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=100000)
 
 nf_df_dict = nf_df.to_dict("records")
 
 
 ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\"
                     "7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv",
-                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=300000)
+                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=100000)
 
 ml_df_dict = ml_df.to_dict("records")
 
@@ -229,20 +226,20 @@ records_test = [
     {0: '76196', 1: '1.0', 2: '1175.0', 3: '5168'}
 ]
 
-count_movie = ct(entry[3] for entry in records_test)
-#count_movie = ct(entry[3] for entry in nf_df_dict)
-deafen = pd.DataFrame(records_test)
-dafen = pd.DataFrame(auxi_test)
-#deafen = nf_df
-#dafen = ml_df
+#count_movie = ct(entry[3] for entry in records_test)
+count_movie = ct(entry[3] for entry in nf_df_dict)
+#deafen = pd.DataFrame(records_test)
+#dafen = pd.DataFrame(auxi_test)
+deafen = nf_df
+dafen = ml_df
 deafen.set_index([3],inplace=True) # setze movieID als index also haupterkennung
 dafen.set_index([1],inplace=True) # setze movieID als index also haupterkennung
 com_movies = deafen.index.unique().intersection(dafen.index.unique()) # gib nur die MovieIDs die beide haben
 
 
 list_ecc, match_true, match_false = algorithm_1b(com_movies, count_movie, dafen, deafen)
-#count_ecc = ct(list_ecc)
-#print(count_ecc)
+count_ecc = ct(list_ecc)
+print(count_ecc)
 def create_histogram(list_ecc):
     # Generate some random data
     data = list_ecc  # You can replace this with your own dataset
@@ -274,13 +271,4 @@ def create_barchart(match_true, match_false):
     plt.show()
 
 
-#create_histogram(list_ecc)
-
-
-
-
-
-
-
-
-
+create_histogram(list_ecc)
