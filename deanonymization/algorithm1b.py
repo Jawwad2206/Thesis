@@ -84,17 +84,17 @@ def matching_criterion(scores, eccentricity):
     else:
         print("case 3")
         sorted_scores = sorted(scores, reverse=True)
-        print(sorted_scores)
+        #print(sorted_scores)
         #print(sorted_scores, "sorted scores")
         unique_list = list(sorted(set(sorted_scores), reverse=True))
-        print(unique_list, "unique List")
+        #print(unique_list, "unique List")
         max_score = unique_list[0]
-        print(max_score, "S1")
+        #print(max_score, "S1")
         max2_score = unique_list[1]
-        print(max2_score, "S2")
+        #print(max2_score, "S2")
         sigma = np.std(scores)
-        print(sigma, "sigma")
-        print(((max_score - max2_score) / sigma), "eccentricity")
+        #print(sigma, "sigma")
+        #print(((max_score - max2_score) / sigma), "eccentricity")
         ecc_calc = ((max_score - max2_score) / sigma)
         if ecc_calc < eccentricity:
             return False, max_score, ecc_calc
@@ -133,19 +133,19 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
     dict or list: The "best-guess" record or a probability distribution.
     """
 
-    eccentricity = 2
+    eccentricity = 1.5
     list_ecc = []
     match_true = 0
     match_false = 0
     for id in com_movie:
-        auxalso = []
+        aux_list_one = []
         records_i = nf_df.loc[id,:]
         auxiliary_information_i = ml_df.loc[id,:]
         records = records_i.to_dict("records")
         if isinstance(auxiliary_information_i, pandas.Series):
             auxiliary_information = auxiliary_information_i.to_dict()
-            auxalso.append(auxiliary_information)
-            auxiliary_information = auxalso
+            aux_list_one.append(auxiliary_information)
+            auxiliary_information = aux_list_one
         else:
             auxiliary_information = auxiliary_information_i.to_dict("records")
         for record in records:
@@ -194,14 +194,14 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
 
 nf_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA"
                     "\\BA-Implementierung\\datasets\\Netflix.csv",
-                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=300000)
+                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=100000)
 
 nf_df_dict = nf_df.to_dict("records")
 
 
 ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\"
                     "7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv",
-                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=300000)
+                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=100000)
 
 ml_df_dict = ml_df.to_dict("records")
 
@@ -229,18 +229,16 @@ records_test = [
     {0: '76196', 1: '1.0', 2: '1175.0', 3: '5168'}
 ]
 
-count_movie = ct(entry[3] for entry in records_test)
-#count_movie = ct(entry[3] for entry in nf_df_dict)
-deafen = pd.DataFrame(records_test)
-dafen = pd.DataFrame(auxi_test)
-#deafen = nf_df
-#dafen = ml_df
-deafen.set_index([3],inplace=True) # setze movieID als index also haupterkennung
-dafen.set_index([1],inplace=True) # setze movieID als index also haupterkennung
-com_movies = deafen.index.unique().intersection(dafen.index.unique()) # gib nur die MovieIDs die beide haben
+#count_movie = ct(entry[3] for entry in records_test)
+count_movie = ct(entry[3] for entry in nf_df_dict)
+#test_1 = pd.DataFrame(records_test)
+#test_2 = pd.DataFrame(auxi_test)
+nf_df.set_index([3],inplace=True) # setze movieID als index also haupterkennung
+ml_df.set_index([1],inplace=True) # setze movieID als index also haupterkennung
+com_movies = nf_df.index.unique().intersection(ml_df.index.unique()) # gib nur die MovieIDs die beide haben
 
 
-list_ecc, match_true, match_false = algorithm_1b(com_movies, count_movie, dafen, deafen)
+list_ecc, match_true, match_false = algorithm_1b(com_movies, count_movie, ml_df, nf_df)
 #count_ecc = ct(list_ecc)
 #print(count_ecc)
 def create_histogram(list_ecc):
@@ -274,7 +272,7 @@ def create_barchart(match_true, match_false):
     plt.show()
 
 
-#create_histogram(list_ecc)
+create_histogram(list_ecc)
 
 
 
