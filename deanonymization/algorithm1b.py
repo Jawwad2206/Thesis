@@ -167,13 +167,15 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
                 pd = record_selection(scores)
                 for i in range(len(scores)):
                     if scores[i] == max_score:
-                        print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
-                              "Set Eccentricity:", eccentricity, "Calculated Eccentricity", round(ecc,2),
-                              "Probability:", pd.get(i), "Candidate Record-->:", auxiliary_information[i])
+                        continue
+                        #print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
+                              #"Set Eccentricity:", eccentricity, "Calculated Eccentricity", round(ecc,2),
+                              #"Probability:", pd.get(i), "Candidate Record-->:", auxiliary_information[i])
                     else:
-                        print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
-                              "Set Eccentricity:", eccentricity,"Calculated Eccentricity", round(ecc,2), "Probability:",
-                              pd.get(i), "Candidate Record-->:", auxiliary_information[i])
+                        continue
+                        #print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
+                              #"Set Eccentricity:", eccentricity,"Calculated Eccentricity", round(ecc,2), "Probability:",
+                              #pd.get(i), "Candidate Record-->:", auxiliary_information[i])
                 print("\n")
             elif max_score == 0 and ecc == 0 or max_score == ecc:
                 match_false += 1
@@ -192,55 +194,35 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
 
 # Load nf.csv and ml.csv datasets
 
+# original length of entry -> 76024778
 nf_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA"
                     "\\BA-Implementierung\\datasets\\Netflix.csv",
-                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=100000)
+                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows= 600000)
 
 nf_df_dict = nf_df.to_dict("records")
 
 
 ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\"
                     "7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv",
-                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=100000)
+                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows= 600000)
 
+# original length of entry -> 13661758
 ml_df_dict = ml_df.to_dict("records")
 
+print(len(ct(entry[0] for entry in nf_df_dict)))
+print(len(ct(entry[0] for entry in ml_df_dict)))
 
-#{0: 'userId', 1: 'movieId', 2: 'rating', 3: 'timestamp'},
-auxi_test  = [
-    {0: '1', 1: '50', 2: '4.0', 3: '2375.0'},
-    {0: '1', 1: '151', 2: '4.0', 3: '2171.0'},
-    {0: '1', 1: '5167', 2: '5.0', 3: '2283.0'},
-    {0: '1', 1: '5167', 2: '3.0', 3: '2812.0'},
-    {0: '1', 1: '5168', 2: '5.0', 3: '2575.0'}
-]
-#{0: '1', 1: '5168', 2: '1.0', 3: '1175.0'},
-
-#{0: 'userId', 1: 'rating', 2: 'timestamp', 3: 'movieId'},
-records_test = [
-    {0: '1109700', 1: '4.0', 2: '1015.0', 3: '5167'},
-    {0: '1056998', 1: '5.0', 2: '2283.0', 3: '5167'},
-    {0: '903692', 1: '3.0', 2: '2295.0', 3: '5167'},
-    {0: '2380973', 1: '4.0', 2: '2603.0', 3: '5167'},
-    {0: '497196', 1: '3.0', 2: '1975.0', 3: '5167'},
-    {0: '74144', 1: '3.0', 2: '2312.0', 3: '5167'},
-    {0: '2075969', 1: '5.0', 2: '2443.0', 3: '5167'},
-    {0: '2535052', 1: '4.0', 2: '2575.0', 3: '5168'},
-    {0: '76196', 1: '1.0', 2: '1175.0', 3: '5168'}
-]
-
-#count_movie = ct(entry[3] for entry in records_test)
 count_movie = ct(entry[3] for entry in nf_df_dict)
-#test_1 = pd.DataFrame(records_test)
-#test_2 = pd.DataFrame(auxi_test)
+
 nf_df.set_index([3],inplace=True) # setze movieID als index also haupterkennung
 ml_df.set_index([1],inplace=True) # setze movieID als index also haupterkennung
 com_movies = nf_df.index.unique().intersection(ml_df.index.unique()) # gib nur die MovieIDs die beide haben
 
 
-list_ecc, match_true, match_false = algorithm_1b(com_movies, count_movie, ml_df, nf_df)
-#count_ecc = ct(list_ecc)
-#print(count_ecc)
+#list_ecc, match_true, match_false = algorithm_1b(com_movies, count_movie, ml_df, nf_df)
+#print(np.mean(list_ecc))
+#print(match_true)
+#print(match_false)
 def create_histogram(list_ecc):
     # Generate some random data
     data = list_ecc  # You can replace this with your own dataset
@@ -272,7 +254,7 @@ def create_barchart(match_true, match_false):
     plt.show()
 
 
-create_histogram(list_ecc)
+#create_histogram(list_ecc)
 
 
 
