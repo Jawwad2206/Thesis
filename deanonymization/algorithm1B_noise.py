@@ -4,7 +4,7 @@ Created on Thu January 14 17:31:18 2023
 
 @author:Jawwad Khan,7417247,Thesis Cybersecurity,Title: The Role of the Adversary's Success Rate Metric in Cybersecurity
 """
-
+import pandas
 import pandas as pd
 import numpy as np
 from collections import Counter as ct
@@ -69,19 +69,19 @@ def matching_criterion(scores, eccentricity):
     bool: True if there is a match, False otherwise.
     """
     if (sum(scores) == 0):
-        #print("case 1")
+        print("case 1")
         return False, 0, 0
     elif len(scores) == 1:
-        #print("case 2")
+        print("case 2")
         max_score = scores[0]
         if max_score < 2:
             return False, max_score, max_score
         else:
             return False, max_score, max_score
     else:
-        #print("case 3")
+        print("case 3")
         sorted_scores = sorted(scores, reverse=True)
-        #print(sorted_scores)
+        print(sorted_scores)
         #print(sorted_scores, "sorted scores")
         unique_list = list(sorted(set(sorted_scores), reverse=True))
         #print(unique_list, "unique List")

@@ -72,25 +72,25 @@ def matching_criterion(scores, eccentricity):
     bool: True if there is a match, False otherwise.
     """
     if (sum(scores) == 0):
-        print("case 1")
+        #print("case 1")
         return False, 0, 0
     elif len(scores) == 1:
-        print("case 2")
+        #print("case 2")
         max_score = scores[0]
         if max_score < 2:
             return False, max_score, max_score
         else:
             return False, max_score, max_score
     else:
-        print("case 3")
+        #print("case 3")
         sorted_scores = sorted(scores, reverse=True)
         #print(sorted_scores)
         #print(sorted_scores, "sorted scores")
         unique_list = list(sorted(set(sorted_scores), reverse=True))
         #print(unique_list, "unique List")
-        max_score = unique_list[0]
+        max_score = sorted_scores[0]
         #print(max_score, "S1")
-        max2_score = unique_list[1]
+        max2_score = sorted_scores[1]
         #print(max2_score, "S2")
         sigma = np.std(scores)
         #print(sigma, "sigma")
@@ -121,7 +121,7 @@ def record_selection(scores):
             probability_distribution[i] = c * (np.exp(score / std_dev))
         return probability_distribution
 
-def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
+def algorithm_1b(com_movie, counts_movie, ml_df, nf_df):
     """
     This function de-anonymizes a target using auxiliary information.
 
@@ -133,10 +133,11 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
     dict or list: The "best-guess" record or a probability distribution.
     """
 
-    eccentricity = 1.5
+    eccentricity = 2
     list_ecc = []
     match_true = 0
     match_false = 0
+
     for id in com_movie:
         aux_list_one = []
         records_i = nf_df.loc[id,:]
@@ -159,6 +160,7 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
             match, max_score, ecc = matching_criterion(scores, eccentricity)
             print("------------------------------------------")
             if match == True:
+
                 match_true +=1
                 if max_score == ecc:
                     continue
@@ -167,22 +169,27 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df):
                 pd = record_selection(scores)
                 for i in range(len(scores)):
                     if scores[i] == max_score:
+
                         print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
                               "Set Eccentricity:", eccentricity, "Calculated Eccentricity", round(ecc,2),
                               "Probability:", pd.get(i), "Candidate Record-->:", auxiliary_information[i])
                     else:
-                        print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
-                              "Set Eccentricity:", eccentricity,"Calculated Eccentricity", round(ecc,2), "Probability:",
-                              pd.get(i), "Candidate Record-->:", auxiliary_information[i])
+                       continue
+                        #print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
+                              #"Set Eccentricity:", eccentricity,"Calculated Eccentricity", round(ecc,2), "Probability:",
+                              #pd.get(i), "Candidate Record-->:", auxiliary_information[i])
                 print("\n")
             elif max_score == 0 and ecc == 0 or max_score == ecc:
+
                 match_false += 1
-                print("no match")
-                print("\n")
+
+                #print("no match")
+                #print("\n")
             else:
                 match_false += 1
-                print("no match Eccentricity:", round(ecc, 2), "<", eccentricity)
-                print("\n")
+
+                #print("no match Eccentricity:", round(ecc, 2), "<", eccentricity)
+                #print("\n")
 
 
 
@@ -204,7 +211,6 @@ ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - 
                      header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=100000)
 
 ml_df_dict = ml_df.to_dict("records")
-
 
 #{0: 'userId', 1: 'movieId', 2: 'rating', 3: 'timestamp'},
 auxi_test  = [
@@ -229,18 +235,24 @@ records_test = [
     {0: '76196', 1: '1.0', 2: '1175.0', 3: '5168'}
 ]
 
+
 #count_movie = ct(entry[3] for entry in records_test)
 count_movie = ct(entry[3] for entry in nf_df_dict)
 #test_1 = pd.DataFrame(records_test)
 #test_2 = pd.DataFrame(auxi_test)
-nf_df.set_index([3],inplace=True) # setze movieID als index also haupterkennung
-ml_df.set_index([1],inplace=True) # setze movieID als index also haupterkennung
-com_movies = nf_df.index.unique().intersection(ml_df.index.unique()) # gib nur die MovieIDs die beide haben
+nf_df_index = nf_df
+ml_df_index = ml_df
+
+nf_df_index.set_index([3],inplace=True) # setze movieID als index also haupterkennung
+ml_df_index.set_index([1],inplace=True) # setze movieID als index also haupterkennung
+
+com_movies = nf_df_index.index.unique().intersection(ml_df_index.index.unique()) # gib nur die MovieIDs die beide haben
 
 
-list_ecc, match_true, match_false = algorithm_1b(com_movies, count_movie, ml_df, nf_df)
-#count_ecc = ct(list_ecc)
-#print(count_ecc)
+#list_ecc, match_true, match_false = algorithm_1b(com_movies, count_movie, ml_df_index, nf_df_index)
+
+#print(match_true, "True")
+#print(match_false, "False")
 def create_histogram(list_ecc):
     # Generate some random data
     data = list_ecc  # You can replace this with your own dataset
@@ -255,24 +267,10 @@ def create_histogram(list_ecc):
     # Display the histogram
     plt.show()
 
-def create_barchart(match_true, match_false):
-    # Sample data
-    categories = ['Category A', 'Category B', 'Category C', 'Category D']
-    values = [20, 35, 40, 25]
-
-    # Creating a bar chart
-    plt.bar(categories, values)
-
-    # Adding labels and title
-    plt.xlabel('Categories')
-    plt.ylabel('Values')
-    plt.title('Bar Chart Example')
-
-    # Display the chart
-    plt.show()
 
 
-create_histogram(list_ecc)
+
+#create_histogram(list_ecc)
 
 
 
