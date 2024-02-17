@@ -10,8 +10,8 @@ This is the menu of this program, there all available options and desired tasks 
 
 import preprocessing.preprocessing as preprocess
 import preprocessing.normalizetime as nt
-import pandas as pd
-
+import deanonymization.algorithm1b as alg1b
+import deanonymization.algorithm1b_test as dumalg1b
 def show_welcome():
     """
     Shows a welcome message one time
@@ -29,7 +29,7 @@ def show_menu():
     """
     print("\n1. Start Data Pre-Processing steps")
     print("2. Start the De-Anonymization Algorithm")
-    print("3. test")
+    print("3. Start the Dummy Test for the De-Anonymization Algorithm")
     print("4. Exit")
 
 def option1():
@@ -48,23 +48,19 @@ def option2():
     The de-anonymization is based on the example provided by Arvind Narayanan and Vitaly Shmatikov
     """
     print("You selected Option 2: De-Anonymization Algorithm")
-    df = pd.read_csv("datasets\\MovieLens.csv",
-                     header=None, encoding="UTF-8", sep = ";", nrows=10)
+    list_ecc = alg1b.start_algorithm_1B()
+    alg1b.create_histogram(list_ecc)
 
 
-    db = pd.read_csv("datasets\\Netflix.csv",
-                     header=None, encoding="UTF-8", sep = ";", nrows=10)
-
-    print(db)
-
-    print(df)
 
 def option3():
     """
-    starts option 3,
+    starts option 3, the dummy test explained in section 7.1.
 
     """
-    print("You selected Option 3")
+    print("You selected Option 3: The Dummy Test")
+    list_ecc = dumalg1b.start_algorithm_1B()
+    dumalg1b.create_histogram(list_ecc)
 
 
 def start_menu():
@@ -74,7 +70,7 @@ def start_menu():
     Options:
     1. option1(): starts the data pre-processing steps.
     2. option2(): the main algorithm of the thesis.
-    3. option3(): ....
+    3. option3(): the dummy test.
     4. Exit the program.
 
     Returns:
@@ -86,11 +82,9 @@ def start_menu():
     while True:
         # Display the menu options
         show_menu()
-
         # Get user input for the chosen option
         choice = input("Enter your choice (1-4): ")
         # Handle user choice
-
         if choice == '1':
             # Execute action for option 1
             option1()

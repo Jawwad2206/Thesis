@@ -5,6 +5,13 @@ Created on Thu December 14 17:31:18 2023
 @author:Jawwad Khan,7417247,Thesis Cybersecurity,Title: The Role of the Adversary's Success Rate Metric in Cybersecurity
 
 This module contains all the function related to the time manipulation of csvs.
+
+This code is based on the code of BigBrother
+
+Source :https://github.com/mpetitjean/BigBrother/blob/master/src/Timestamp%20normalization.ipynb
+(Accessed: Thu December 14 17:31:18 2023)
+
+The code had to be adjusted because of old dependencies and use case.
 """
 
 import numpy as np
@@ -21,6 +28,13 @@ def normalize_time():
     This function loads the dataframes of Netflix and MovieLens, normalizes the timestamp column to represent days since
     a reference time, and rounds up the ratings to the nearest integer. The modified dataframes are
     then saved to separate CSV files.
+
+    This code is based on the code of BigBrother
+
+    Source :https://github.com/mpetitjean/BigBrother/blob/master/src/Timestamp%20normalization.ipynb
+    (Accessed: Thu December 14 17:31:18 2023)
+
+    The code had to be adjusted because of old dependencies and use case.
     """
     # Load another dataframe containing the pre-processed MovieLens dataset
     db = ld.load_ml_csv()
@@ -63,10 +77,5 @@ def days_between_dates(date_str1, date_str2):
 
     return days_passed
 
-# Example usage
-date_str1 = "1998-10-01"
-date_str2 = "2001-12-31"
 
-result = days_between_dates(date_str1, date_str2)
-print(f"Days passed between {date_str1} and {date_str2}: {result} days")
 

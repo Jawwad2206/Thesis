@@ -3,6 +3,10 @@
 Created on Thu January 14 17:31:18 2023
 
 @author:Jawwad Khan,7417247,Thesis Cybersecurity,Title: The Role of the Adversary's Success Rate Metric in Cybersecurity
+The code is based on the information provided by the paper: https://systems.cs.columbia.edu/private-systems-class/papers/Narayanan2008Robust.pdf
+The authors did not provide a link to their personal GitHub Repository and only described their code through written
+text. The following implementation is my interpretation and understanding of their written text. A more thorough
+explanation can be found in my bachelor thesis in Chapter 4.
 """
 
 import pandas
@@ -12,9 +16,34 @@ from collections import Counter as ct
 import matplotlib.pyplot as plt
 
 def sim(rating, timestamp, aux_rating, aux_timestamp):
+    """
+        Calculate the similarity score between two items based on their timestamps and ratings.
+
+        Args:
+            timestamp (float): Timestamp of the record in Netflix.
+            aux_timestamp (float): Timestamp of the auxiliary record in MovieLens.
+            rating (float): Rating of the record in Netflix.
+            aux_rating (float): Rating of the auxiliary record in MovieLens.
+
+        Returns:
+            float: Similarity score between the two items.
+
+        The similarity score is calculated based on the difference in timestamps and ratings between two records.
+        A higher score indicates greater similarity.
+
+        - If the absolute difference in timestamps is less than or equal to 14:
+            - If the absolute difference in timestamps is less than or equal to 3, add 1 to the similarity score.
+            - Otherwise, do not modify the similarity score.
+        - If the difference in ratings is 0, add 1 to the similarity score.
+        - If both the timestamp and rating differences are 0, add 10 to the similarity score.
+
+        """
+
     sim_score = 0
 
+    # Check if the absolute difference in timestamps is less than or equal to 14
     if abs(aux_timestamp - timestamp) <= 14:
+        # If the absolute difference in timestamps is less than or equal to 3, add 1 to the similarity score
         if abs(aux_timestamp - timestamp) <= 3:
             sim_score += 1
         else:
@@ -22,11 +51,13 @@ def sim(rating, timestamp, aux_rating, aux_timestamp):
     else:
         sim_score += 0
 
+    # Check if the difference in ratings is 0
     if abs(rating - aux_rating) == 0:
         sim_score += 1
     else:
         sim_score += 0
 
+    # Check if both the timestamp and rating differences are 0
     if (aux_timestamp - timestamp) == 0 and (aux_rating - rating) == 0:
         sim_score += 10
 
@@ -34,18 +65,31 @@ def sim(rating, timestamp, aux_rating, aux_timestamp):
 
 def score_function(aux, record, counts):
     """
-    This function calculates the score for a record r based on its similarity to the auxiliary information aux.
+            Calculate a combined score based on rating, timestamp, and similarity between two records.
 
-    Parameters:
-    aux (dict): The auxiliary information.
-    r (dict): The record.
+            Args:
+                aux (dict): Auxiliary record containing rating and timestamp information.
+                record (dict): Current record containing rating and timestamp information.
+                counts (int): Count of records.
 
-    Returns:
-    float: The score for the record.
-    """
+            Returns:
+                float: Combined score based on rating, timestamp, and similarity.
+
+            The combined score is calculated using a weighted sum of similarity score and a score function of
+            rating and timestamp differences between two records.
+
+            - If the auxiliary timestamp is negative, return 0.
+            - Otherwise, calculate the similarity score between the current and auxiliary records.
+            - Calculate the weight (wt) based on the logarithm of the count of records.
+            - Compute the combined score using the weighted sum of the similarity score and the decay function
+              of rating and timestamp differences.
+            """
     sim_score = 0
     score = 0
+
+    # parameter for rating
     rho0 = 1.5
+    # parameter for timestamp
     d0 = 30
     rating = float(record.get(1))
     timestamp = float(record.get(2))
@@ -55,47 +99,62 @@ def score_function(aux, record, counts):
     if aux_timestamp < 0:
         score = 0
     else:
+        # Calculate the similarity score between the current and auxiliary records
         sim_score = sim(rating, timestamp, aux_rating, aux_timestamp)
-        wt = (1/(np.log10(counts)))
+
+        # Calculate the weight (wt) based on the logarithm of the count of movies in the Netflix dataset
+        wt = (1 / (np.log10(counts)))
+
+        # Compute the combined score using the weighted sum of the similarity score and the decay function
         score = wt * (np.exp(-((aux_rating - rating)) / rho0) + np.exp((-aux_timestamp - timestamp) / d0))
 
     return score + sim_score
 
 def matching_criterion(scores, eccentricity):
     """
-    This function determines whether there is a match based on the scores of the records.
+       Determine if there is a match based on scores and eccentricity threshold.
 
-    Parameters:
-    scores (list): The scores of the records.
+       Args:
+           scores (list of float): List of scores.
+           eccentricity (float): Eccentricity threshold.
 
-    Returns:
-    bool: True if there is a match, False otherwise.
-    """
+       Returns:
+           tuple: A tuple containing three elements:
+               - bool: Indicates whether there is a match.
+               - float: Maximum score in the list.
+               - float: Calculated eccentricity value.
+
+       The function checks if there is a match based on the scores and a specified eccentricity threshold.
+       If the sum of scores is 0, it returns False along with the maximum score and calculated eccentricity.
+       If there is only one score in the list, it returns False if the score is less than 2, otherwise, it returns True,
+       along with the maximum score and calculated eccentricity.
+       Otherwise, it sorts the scores in descending order, removes duplicates, calculates the maximum score and the
+       second maximum score, computes the standard deviation (sigma) of the scores, calculates the eccentricity based on
+       the maximum and second maximum scores and the sigma value, and finally determines if there is a match based on
+       the calculated eccentricity and the specified eccentricity threshold.
+       """
+
     if (sum(scores) == 0):
-        print("case 1")
         return False, 0, 0
     elif len(scores) == 1:
-        print("case 2")
         max_score = scores[0]
         if max_score < 2:
             return False, max_score, max_score
         else:
             return False, max_score, max_score
     else:
-        print("case 3")
+        # Sort the scores in descending order
         sorted_scores = sorted(scores, reverse=True)
-        #print(sorted_scores)
-        #print(sorted_scores, "sorted scores")
+        # Remove duplicates and maintain the order
         unique_list = list(sorted(set(sorted_scores), reverse=True))
-        #print(unique_list, "unique List")
+        # Find the maximum and second maximum scores
         max_score = unique_list[0]
-        #print(max_score, "S1")
         max2_score = unique_list[1]
-        #print(max2_score, "S2")
+        # Calculate the standard deviation of scores
         sigma = np.std(scores)
-        #print(sigma, "sigma")
-        #print(((max_score - max2_score) / sigma), "eccentricity")
+        # Calculate eccentricity
         ecc_calc = ((max_score - max2_score) / sigma)
+        # Check if there is a match based on the calculated eccentricity and the specified eccentricity threshold
         if ecc_calc < eccentricity:
             return False, max_score, ecc_calc
         else:
@@ -103,14 +162,22 @@ def matching_criterion(scores, eccentricity):
 
 def record_selection(scores):
     """
-    This function selects the "best-guess" record or a probability distribution based on the scores.
+        Select a record index based on scores using probability distribution.
 
-    Parameters:
-    scores (list): The scores of the records.
+        Args:
+            scores (list of float): List of scores.
 
-    Returns:
-    dict or list: The "best-guess" record or a probability distribution.
-    """
+        Returns:
+            Union[int, dict]: If there is only one score in the list, returns that score.
+            Otherwise, returns a dictionary representing the probability distribution of record indices.
+
+        The function selects a record index based on scores using a probability distribution.
+        If there is only one score in the list, it returns that score.
+        Otherwise, it calculates the probability distribution for each score based on the exponential of the score
+        divided by the standard deviation of scores, then returns a dictionary representing the probability distribution
+        of record indices, where each key represents a record index and each value represents the probability of
+        selecting that record.
+        """
     if len(scores) == 1:
         return scores[0]
     else:
@@ -123,61 +190,86 @@ def record_selection(scores):
 
 def algorithm_1b(com_movie, counts_movie,ml_df, nf_df, dummy_records):
     """
-    This function de-anonymizes a target using auxiliary information.
+        Implement algorithm 1b of the paper: https://systems.cs.columbia.edu/private-systems-class/papers/Narayanan2008Robust.pdf
 
-    Parameters:
-    aux (dict): The auxiliary information.
-    dataset (DataFrame): The dataset.
+        Args:
+            com_movie (list): List of common movie IDs between Netflix and MovieLens.
+            counts_movie (dict): Dictionary containing counts of movies for each movie in Netflix.
+            ml_df (pandas.DataFrame): DataFrame containing auxiliary information for movies (MovieLens).
+            nf_df (pandas.DataFrame): DataFrame containing records for movies (Netflix).
 
-    Returns:
-    dict or list: The "best-guess" record or a probability distribution.
-    """
+        Returns:
+            tuple: A tuple containing three elements:
+                - list: List of eccentricities for matched records.
+                - int: Count of matches.
+                - int: Count of mismatches.
+
+        The function implements algorithm 1b. It iterates through each movie ID in com_movie.
+        For each movie, it retrieves records and auxiliary information from corresponding DataFrames.
+        It then calculates scores and determines matches based on a specified eccentricity threshold.
+        The function prints information about each record and match.
+        It returns a tuple containing a list of eccentricities for matched records, the count of matches, and the count
+        of mismatches.
+        """
 
     eccentricity = 1.5
+    # List to store eccentricities for matched records
     list_ecc = []
+    # Counter for matches
     match_true = 0
+    # Counter for mismatches
     match_false = 0
+
+    # Iterate through each movie ID
     for id in com_movie:
         aux_list_one = []
-        records_i = nf_df.loc[id,:]
-        auxiliary_information_i = ml_df.loc[id,:]
+        # Retrieve records for the current movie
+        records_i = nf_df.loc[id, :]
+        # Retrieve auxiliary information for the current movie
+        auxiliary_information_i = ml_df.loc[id, :]
+        # Convert records DataFrame to a list of dictionaries
         records = records_i.to_dict("records")
+        # If the auxiliary information is a Series, convert it to a dictionary and append it to a list
         if isinstance(auxiliary_information_i, pandas.Series):
             auxiliary_information = auxiliary_information_i.to_dict()
             aux_list_one.append(auxiliary_information)
             auxiliary_information = aux_list_one
         else:
             if id == 7149:
-                auxiliary_information = (auxiliary_information_i.to_dict("records") + dummy_entries)
+                auxiliary_information = (auxiliary_information_i.to_dict("records") + dummy_records)
             else:
                 auxiliary_information = auxiliary_information_i.to_dict("records")
+        # Iterate through each record of the current movie
         for record in records:
+            # List to store scores for each auxiliary record
             scores = []
             print("MovieID:", id, "Record ->", record)
+            # Calculate score for each auxiliary record
             for aux in auxiliary_information:
-                #print(record, "record")
-                #print(counts_movie.get(id), "counts_movie.get(id)")
                 score = score_function(aux, record, counts_movie.get(id))
                 scores.append(score)
+            # Determine if there is a match based on the scores and eccentricity threshold
             match, max_score, ecc = matching_criterion(scores, eccentricity)
             print("------------------------------------------")
             if match == True:
-                match_true +=1
+                match_true += 1
                 if max_score == ecc:
                     continue
                 else:
+                    # Store eccentricity for matched records
                     list_ecc.append(ecc)
                 pd = record_selection(scores)
+                # Print information about each record and match
                 for i in range(len(scores)):
                     if scores[i] == max_score:
                         print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
-                              "Set Eccentricity:", eccentricity, "Calculated Eccentricity", round(ecc,2),
+                              "Set Eccentricity:", eccentricity, "Calculated Eccentricity", round(ecc, 2),
                               "Probability:", pd.get(i), "Candidate Record-->:", auxiliary_information[i])
                     else:
-                        continue
-                        #print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
-                              #"Set Eccentricity:", eccentricity,"Calculated Eccentricity", round(ecc,2), "Probability:",
-                              #pd.get(i), "Candidate Record-->:", auxiliary_information[i])
+                        print("->Record:", i, "Score:", round(scores[i], 2), "Max Score:", round(max_score, 2),
+                              "Set Eccentricity:", eccentricity, "Calculated Eccentricity", round(ecc, 2),
+                              "Probability:",
+                              pd.get(i), "Candidate Record-->:", auxiliary_information[i])
                 print("\n")
             elif max_score == 0 and ecc == 0 or max_score == ecc:
                 match_false += 1
@@ -188,73 +280,87 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df, dummy_records):
                 print("no match Eccentricity:", round(ecc, 2), "<", eccentricity)
                 print("\n")
 
+            return list_ecc, match_true, match_false
 
 
-    return list_ecc, match_true, match_false
+def start_algorithm_1B():
+    """
+        Start the execution of algorithm 1B.
 
+        This function loads the Netflix (nf.csv) and MovieLens (ml.csv) datasets, performs necessary preprocessing,
+        calculates counts of records for each movie in the Netflix dataset, identifies common movie IDs between
+        Netflix and MovieLens datasets, and executes algorithm 1B for the common movies.
 
+        Returns:
+            list: A list containing eccentricities for matched records.
 
-# Load nf.csv and ml.csv datasets
+        Algorithm 1B compares records from the Netflix and MovieLens datasets to find matches based on similarity
+        scores and a specified eccentricity threshold. It iterates through common movie IDs, calculates similarity
+        scores for each record pair, determines matches, and prints information about the matches. The function returns
+        a list of eccentricities for matched records.
 
-nf_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA"
-                    "\\BA-Implementierung\\datasets\\Netflix.csv",
-                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=100000)
+        Note: Paths to the datasets are hard-coded and need to be adjusted based on the actual file locations.
+        """
+    # Load nf.csv and ml.csv datasets
+    nf_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA"
+                        "\\BA-Implementierung\\datasets\\Netflix.csv",
+                        header=None, encoding="UTF-8", sep=";", skiprows=1, nrows=100000)
 
-nf_df_dict = nf_df.to_dict("records")
+    ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\"
+                        "7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv",
+                        header=None, encoding="UTF-8", sep=";", skiprows=1, nrows=100000)
 
+    # original length of entry -> 76024778
+    nf_df_dict = nf_df.to_dict("records")
 
-ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\"
-                    "7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv",
-                     header=None, encoding="UTF-8", sep = ";", skiprows=1, nrows=100000)
+    #dummy entries
+    dummy_entries = [
+        {0: "1118663", 2: 4.0, 3: 2335.0},
+        {0: "686179", 2: 4.0, 3: 2336.0},
+        {0: "217912", 2: 4.0, 3: 2339.0},
+        {0: "989270", 2: 3.0, 3: 2340.0},
+        {0: "1113868", 2: 3.0, 3: 2341.0},
+        {0: "1227649", 2: 3.0, 3: 2341.0},
+        {0: "747270", 2: 3.0, 3: 2342.0},
+        {0: "1174587", 2: 4.0, 3: 2343.0},
+        {0: "1075528", 2: 4.0, 3: 2344.0},
+        {0: "1041042", 2: 3.0, 3: 2348.0},
+        {0: "1120573", 2: 4.0, 3: 2349.0},
+        {0: "1622639", 2: 4.0, 3: 2349.0},
+        {0: "1763559", 2: 3.0, 3: 2352.0},
+        {0: "437111", 2: 4.0, 3: 2363.0},
+        {0: "2097976", 2: 4.0, 3: 2363.0},
+        {0: "649662", 2: 3.0, 3: 2369.0},
+        {0: "2638072", 2: 4.0, 3: 2370.0},
+        {0: "694027", 2: 4.0, 3: 2374.0},
+        {0: "496408", 2: 4.0, 3: 2374.0},
+        {0: "426220", 2: 4.0, 3: 2377.0},
+        {0: "772936", 2: 4.0, 3: 2377.0},
+        {0: "1106511", 2: 4.0, 3: 2378.0},
+        {0: "981937", 2: 3.0, 3: 2380.0},
+        {0: "2419751", 2: 4.0, 3: 2384.0},
+        {0: "1818865", 2: 4.0, 3: 2392.0},
+        {0: "1150614", 2: 3.0, 3: 2393.0},
+        {0: "983833", 2: 4.0, 3: 2393.0},
+        {0: "2532368", 2: 4.0, 3: 2395.0},
+        {0: "1293557", 2: 4.0, 3: 2397.0},
+        {0: "1297965", 2: 4.0, 3: 2398.0}
+    ]
 
-ml_df_dict = ml_df.to_dict("records")
+    # Calculate counts of movies for each movie in Netflix dataset
+    count_movie = ct(entry[3] for entry in nf_df_dict)
 
+    # Set movieID as index for both DataFrames
+    nf_df.set_index([3], inplace=True)
+    ml_df.set_index([1], inplace=True)
 
-dummy_entries = [
-{0: "1118663", 2: 4.0, 3: 2335.0},
-{0: "686179", 2: 4.0, 3: 2336.0},
-{0: "217912", 2: 4.0, 3: 2339.0},
-{0: "989270", 2: 3.0, 3: 2340.0},
-{0: "1113868", 2: 3.0, 3: 2341.0},
-{0: "1227649", 2: 3.0, 3: 2341.0},
-{0: "747270", 2: 3.0, 3: 2342.0},
-{0: "1174587", 2: 4.0, 3: 2343.0},
-{0: "1075528", 2: 4.0, 3: 2344.0},
-{0: "1041042", 2: 3.0, 3: 2348.0},
-{0: "1120573", 2: 4.0, 3: 2349.0},
-{0: "1622639", 2: 4.0, 3: 2349.0},
-{0: "1763559", 2: 3.0, 3: 2352.0},
-{0: "437111", 2: 4.0, 3: 2363.0},
-{0: "2097976", 2: 4.0, 3: 2363.0},
-{0: "649662", 2: 3.0, 3: 2369.0},
-{0: "2638072", 2: 4.0, 3: 2370.0},
-{0: "694027", 2: 4.0, 3: 2374.0},
-{0: "496408", 2: 4.0, 3: 2374.0},
-{0: "426220", 2: 4.0, 3: 2377.0},
-{0: "772936", 2: 4.0, 3: 2377.0},
-{0: "1106511", 2: 4.0, 3: 2378.0},
-{0: "981937", 2: 3.0, 3: 2380.0},
-{0: "2419751", 2: 4.0, 3: 2384.0},
-{0: "1818865", 2: 4.0, 3: 2392.0},
-{0: "1150614", 2: 3.0, 3: 2393.0},
-{0: "983833", 2: 4.0, 3: 2393.0},
-{0: "2532368", 2: 4.0, 3: 2395.0},
-{0: "1293557", 2: 4.0, 3: 2397.0},
-{0: "1297965", 2: "4.0", 3: 2398.0}
-]
+    # Get common movie IDs between Netflix and MovieLens datasets
+    com_movies = nf_df.index.unique().intersection(ml_df.index.unique())
 
-#count_movie = ct(entry[3] for entry in records_test)
-count_movie = ct(entry[3] for entry in nf_df_dict)
+    # Execute algorithm 1b for the common movies
+    list_ecc, match_true, match_false = algorithm_1b(com_movies, count_movie, ml_df, nf_df)
 
-nf_df.set_index([3],inplace=True) # setze movieID als index also haupterkennung
-ml_df.set_index([1],inplace=True) # setze movieID als index also haupterkennung
-com_movies = nf_df.index.unique().intersection(ml_df.index.unique()) # gib nur die MovieIDs die beide haben
-
-list_ecc, match_true, match_false = algorithm_1b(com_movies, count_movie, ml_df, nf_df, dummy_entries)
-
-print(match_true)
-print(np.mean(list_ecc))
-#list_ecc, match_true, match_false = algorithm_1b(com_movies, count_movie, ml_df, nf_df)
+    return list_ecc
 
 def create_histogram(list_ecc):
     # Generate some random data
@@ -271,7 +377,8 @@ def create_histogram(list_ecc):
     plt.show()
 
 
-create_histogram(list_ecc)
+
+
 
 
 

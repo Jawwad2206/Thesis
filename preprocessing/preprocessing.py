@@ -4,6 +4,12 @@ Created on Thu January 11 16:51:18 2024
 
 @author:Jawwad Khan,7417247,Thesis Cybersecurity,Title: The Role of the Adversary's Success Rate Metric in Cybersecurity
 
+This code is based on the code of BigBrother
+
+Source :https://github.com/mpetitjean/BigBrother/blob/master/src/clean_ML_db.ipynb
+(Accessed: Thu January 11 16:51:18 2024)
+
+The code had to be adjusted because of old dependencies and use case.
 """
 
 import pandas as pd
@@ -14,6 +20,13 @@ import csv
 
 def data_cleanup(db):
     """
+    This code is based on the code of BigBrother
+
+    Source :https://github.com/mpetitjean/BigBrother/blob/master/src/clean_ML_db.ipynb
+    (Accessed: Thu January 11 16:51:18 2024)
+
+    The code had to be adjusted because of old dependencies and use case.
+
     Clean up the movie ratings of the MovieLens database by removing out-of-bounds entries based on timestamp and
     extracting a list of distinct movieIds for further processing.
 
@@ -53,6 +66,13 @@ def data_cleanup(db):
 
 def merge_movie_datasets(list_ml_movies):
     """
+    This code is based on the code of BigBrother
+
+    Source :https://github.com/mpetitjean/BigBrother/blob/master/src/clean_ML_db.ipynb
+    (Accessed: Thu January 11 16:51:18 2024)
+
+    The code had to be adjusted because of old dependencies and use case.
+
     Merge movie datasets from Netflix and MovieLens, filtering out problematic movie titles.
 
     Parameters:
@@ -144,6 +164,13 @@ def merge_movie_datasets(list_ml_movies):
 
 def intersection_of_movie(nf_movies, ml_movies, db):
     """
+    This code is based on the code of BigBrother
+
+    Source :https://github.com/mpetitjean/BigBrother/blob/master/src/clean_ML_db.ipynb
+    (Accessed: Thu January 11 16:51:18 2024)
+
+    The code had to be adjusted because of old dependencies and use case.
+
     Identify the intersection of movies between Netflix and MovieLens datasets and prepare the final datasets.
 
     Parameters:
