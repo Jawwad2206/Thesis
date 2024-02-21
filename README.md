@@ -52,11 +52,13 @@ Follow the instructions below to ensure proper configuration:
 1. Open the `preprocessing.py` file located in the preprocessing folder.
 2. Go to line 102 and insert the file location for the Netflix dataset movie_titles.txt.
 3. Similarly, in line 123, insert the file location for the movies.csv from the MovieLens dataset.
-4. Proceed to line 209 and insert the file location for the training set.
+4. Proceed to line 209 and insert the file location for the training set. 
 
-Important: When copying the path, modify it as follows: 
+Important: When copying the path for line 209, modify it as follows: 
 
-Change from "C:\...\...\...\...\...\...\...\...\datasets\nf_prize_dataset\download\training_set\training_set" to "C:\...\...\...\...\...\...\...\...\datasets\nf_prize_dataset\download\training_set\training_set\mv_". 
+Change from "C:\...\...\...\...\...\...\...\...\datasets\nf_prize_dataset\download\training_set\training_set" to 
+
+"C:\...\...\...\...\...\...\...\...\datasets\nf_prize_dataset\download\training_set\training_set\mv_". 
 
 This adjustment ensures correct file concatenation during iteration.
 * ### Create Datasets Folder:

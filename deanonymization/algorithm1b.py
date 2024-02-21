@@ -301,13 +301,9 @@ def start_algorithm_1B():
         Note: Paths to the datasets are hard-coded and need to be adjusted based on the actual file locations.
         """
     # Load nf.csv and ml.csv datasets
-    nf_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA"
-                        "\\BA-Implementierung\\datasets\\Netflix.csv",
-                        header=None, encoding="UTF-8", sep=";", skiprows=1, nrows=100000)
+    nf_df = pd.read_csv("datasets\\Netflix.csv", header=None, encoding="UTF-8", sep=";", skiprows=1, nrows=100000)
 
-    ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\"
-                        "7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv",
-                        header=None, encoding="UTF-8", sep=";", skiprows=1, nrows=100000)
+    ml_df = pd.read_csv("datasets\\MovieLens.csv", header=None, encoding="UTF-8", sep=";", skiprows=1, nrows=100000)
 
     # original length of entry -> 76024778
     nf_df_dict = nf_df.to_dict("records")

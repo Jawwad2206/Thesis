@@ -12,6 +12,7 @@ import preprocessing.preprocessing as preprocess
 import preprocessing.normalizetime as nt
 import deanonymization.algorithm1b as alg1b
 import deanonymization.algorithm1b_test as dumalg1b
+import os
 def show_welcome():
     """
     Shows a welcome message one time
@@ -39,8 +40,16 @@ def option1():
     lines.
     """
     print("You selected Option 1: Data Pre-Processing steps")
-    preprocess.complete_process()
-    nt.normalize_time()
+
+    nf_path = "datasets\\Netflix.csv"
+    ml_path = "datasets\\MovieLens.csv"
+    if os.path.exists(nf_path) and os.path.exists(ml_path):
+        print("File exists, pre-processing steps will be skipped")
+        print("Return to Menu.....")
+    else:
+        print("File does not exist, starting pre-processing steps")
+        preprocess.complete_process()
+        nt.normalize_time()
 
 def option2():
     """

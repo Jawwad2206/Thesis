@@ -222,6 +222,7 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df, dummy_records):
 
     # Iterate through each movie ID
     for id in com_movie:
+        print(id)
         aux_list_one = []
         # Retrieve records for the current movie
         records_i = nf_df.loc[id, :]
@@ -229,6 +230,7 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df, dummy_records):
         auxiliary_information_i = ml_df.loc[id, :]
         # Convert records DataFrame to a list of dictionaries
         records = records_i.to_dict("records")
+
         # If the auxiliary information is a Series, convert it to a dictionary and append it to a list
         if isinstance(auxiliary_information_i, pandas.Series):
             auxiliary_information = auxiliary_information_i.to_dict()
@@ -280,7 +282,7 @@ def algorithm_1b(com_movie, counts_movie,ml_df, nf_df, dummy_records):
                 print("no match Eccentricity:", round(ecc, 2), "<", eccentricity)
                 print("\n")
 
-            return list_ecc, match_true, match_false
+    return list_ecc, match_true, match_false
 
 
 def start_algorithm_1B():
@@ -302,13 +304,9 @@ def start_algorithm_1B():
         Note: Paths to the datasets are hard-coded and need to be adjusted based on the actual file locations.
         """
     # Load nf.csv and ml.csv datasets
-    nf_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\7.Semester\\BA"
-                        "\\BA-Implementierung\\datasets\\Netflix.csv",
-                        header=None, encoding="UTF-8", sep=";", skiprows=1, nrows=100000)
+    nf_df = pd.read_csv("datasets\\Netflix.csv", header=None, encoding="UTF-8", sep=";", skiprows=1, nrows=100000)
 
-    ml_df = pd.read_csv("C:\\Users\\jawwa\\OneDrive\\Studium\\Goethe Universität - BA\\"
-                        "7.Semester\\BA\\BA-Implementierung\\datasets\\MovieLens.csv",
-                        header=None, encoding="UTF-8", sep=";", skiprows=1, nrows=100000)
+    ml_df = pd.read_csv("datasets\\MovieLens.csv", header=None, encoding="UTF-8", sep=";", skiprows=1, nrows=100000)
 
     # original length of entry -> 76024778
     nf_df_dict = nf_df.to_dict("records")
@@ -357,9 +355,12 @@ def start_algorithm_1B():
     # Get common movie IDs between Netflix and MovieLens datasets
     com_movies = nf_df.index.unique().intersection(ml_df.index.unique())
 
-    # Execute algorithm 1b for the common movies
-    list_ecc, match_true, match_false = algorithm_1b(com_movies, count_movie, ml_df, nf_df)
 
+    # Execute algorithm 1b for the common movies
+    list_ecc, match_true, match_false = algorithm_1b(com_movies, count_movie, ml_df, nf_df, dummy_entries)
+
+    ecc_mean = np.mean(list_ecc)
+    print("The mean of the eccentricities after the dummy test is:", ecc_mean)
     return list_ecc
 
 def create_histogram(list_ecc):
@@ -375,7 +376,6 @@ def create_histogram(list_ecc):
 
     # Display the histogram
     plt.show()
-
 
 
 
